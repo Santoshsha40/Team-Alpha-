@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8000/api/v1";
+const API_BASE = `${window.location.origin}/api/v1`;
 const DEMO_CREDENTIALS = {
   email: "studenta@campus.edu",
   password: "Student123!",
@@ -12,7 +12,14 @@ const state = {
   selectedItem: null,
   currentUser: null,
   accessToken: localStorage.getItem("campusloop-token") || "",
+  cart: [],
 };
+
+const formatCurrency = (amount) =>
+  `₹${Number(amount).toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 
 const normalizeUiCategory = (categoryName = "") => {
   const normalized = categoryName.toLowerCase();
@@ -58,6 +65,17 @@ const getVisualForCategory = (categoryName = "") => {
   return visuals[mapped] || "◈";
 };
 
+const itemPriceByName = (name = "") => {
+  const normalized = name.toLowerCase();
+  if (normalized.includes("calculator")) return 1499;
+  if (normalized.includes("headphone")) return 2499;
+  if (normalized.includes("camera")) return 3499;
+  if (normalized.includes("charger")) return 1299;
+  if (normalized.includes("stove")) return 2899;
+  if (normalized.includes("graph")) return 799;
+  return 1299;
+};
+
 const mapApiItem = (resource) => ({
   id: resource.resource_id,
   name: resource.name,
@@ -72,10 +90,137 @@ const mapApiItem = (resource) => ({
       (resource.availability_status || "").toUpperCase(),
     ),
   rawStatus: resource.availability_status,
+  price: itemPriceByName(resource.name),
+  rating: 4.8 + ((resource.resource_id || 1) % 2) * 0.1,
+  reviews: 42 + (resource.resource_id || 1) * 6,
 });
 
 const saveToken = () => {
   localStorage.setItem("campusloop-token", state.accessToken || "");
+};
+
+const addToCart = (itemId) => {
+  const item = state.items.find((entry) => entry.id === itemId);
+  if (!item) return;
+
+  const existing = state.cart.find((entry) => entry.id === itemId);
+  if (existing) {
+    existing.quantity += 1;
+  } else {
+    state.cart.push({ ...item, quantity: 1 });
+  }
+
+  renderCart();
+  showToast(`${item.name} added to cart.`);
+};
+
+const renderCart = () => {
+  const cartItems = document.querySelector("#cart-items");
+  const cartCount = document.querySelector("#cart-count");
+  const cartTotal = document.querySelector("#cart-total");
+  const totalItems = state.cart.reduce((sum, item) => sum + item.quantity, 0);
+  const subtotal = state.cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  cartCount.textContent = String(totalItems);
+  cartTotal.textContent = formatCurrency(subtotal);
+
+  if (!state.cart.length) {
+    cartItems.innerHTML = '<p class="muted cart-empty">Your cart is empty.</p>';
+    return;
+  }
+
+  cartItems.innerHTML = state.cart
+    .map(
+      (item) => `
+        <div class="cart-item">
+          <div class="cart-item-copy">
+            <strong>${item.name}</strong>
+            <span>${item.quantity} x ${formatCurrency(item.price)}</span>
+          </div>
+          <button class="remove-cart" data-remove-cart="${item.id}" aria-label="Remove ${item.name}">x</button>
+        </div>
+      `,
+    )
+    .join("");
+
+  document.querySelectorAll("[data-remove-cart]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const id = Number(button.dataset.removeCart);
+      state.cart = state.cart.filter((item) => item.id !== id);
+      renderCart();
+    });
+  });
+};
+
+const openProductDetail = (id) => {
+  const item = state.items.find((entry) => entry.id === id);
+  if (!item) return;
+
+  const modal = document.querySelector("#product-detail");
+  modal.innerHTML = `
+    <div class="product-visual-wrap">
+      <div class="product-visual large image-${item.category.toLowerCase()}"><span>${item.visual}</span></div>
+    </div>
+    <div class="product-detail-copy">
+      <p class="eyebrow product-eyebrow">${item.category}</p>
+      <h2>${item.name}</h2>
+      <div class="product-detail-meta">
+        <span>★ ${item.rating.toFixed(1)}</span>
+        <span>${item.reviews} reviews</span>
+      </div>
+      <div class="product-price-row">
+        <strong>${formatCurrency(item.price)}</strong>
+        <span>Pickup: ${item.location}</span>
+      </div>
+      <p>${item.description}</p>
+      <div class="product-actions">
+        <button class="primary-button" data-cart-detail="${item.id}">Add to cart</button>
+        <button class="outline-button" data-request-detail="${item.id}">Request item</button>
+      </div>
+    </div>
+  `;
+
+  document.querySelector("#product-modal").classList.remove("hidden");
+
+  const addButton = document.querySelector("[data-cart-detail]");
+  addButton?.addEventListener("click", () => {
+    addToCart(item.id);
+    document.querySelector("#product-modal").classList.add("hidden");
+  });
+
+  const requestButton = document.querySelector("[data-request-detail]");
+  requestButton?.addEventListener("click", () => {
+    document.querySelector("#product-modal").classList.add("hidden");
+    openRequest(item.id);
+  });
+};
+
+const openCheckout = () => {
+  if (!state.cart.length) {
+    showToast("Your cart is empty.");
+    return;
+  }
+
+  const checkout = document.querySelector("#checkout-items");
+  const checkoutTotal = document.querySelector("#checkout-total");
+  const subtotal = state.cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  checkout.innerHTML = state.cart
+    .map(
+      (item) => `
+        <div class="checkout-row">
+          <div>
+            <strong>${item.name}</strong>
+            <span>Qty ${item.quantity}</span>
+          </div>
+          <strong>${formatCurrency(item.price * item.quantity)}</strong>
+        </div>
+      `,
+    )
+    .join("");
+
+  checkoutTotal.textContent = formatCurrency(subtotal);
+  document.querySelector("#checkout-modal").classList.remove("hidden");
 };
 
 const requestJson = async (url, options = {}) => {
@@ -157,12 +302,14 @@ const initializeApp = async () => {
     await loadCategories();
     await loadItems();
     await loadRequests();
+    renderCart();
   } catch (error) {
     console.error("CampusLoop backend connection failed:", error);
     showToast("Could not reach the CampusLoop API. Start the backend server and refresh.");
     state.items = [];
     renderItems();
     renderRequests();
+    renderCart();
   }
 };
 
@@ -195,7 +342,32 @@ function renderItems() {
     ? visible
         .map(
           (item) =>
-            `<article class="item-card"><div class="item-image image-${item.category.toLowerCase()}"><span class="availability">${item.available ? "Available" : "On loan"}</span><span class="item-visual">${item.visual}</span></div><div class="item-content"><span class="item-category">${item.category}</span><h3>${item.name}</h3><p class="item-description">${item.description}</p><div class="item-meta"><span>${item.location}</span><button class="request-button" data-request="${item.id}">Request -></button></div></div></article>`,
+            `<article class="item-card">
+              <div class="item-image image-${item.category.toLowerCase()}">
+                <span class="availability">${item.available ? "Available" : "On loan"}</span>
+                <span class="item-visual">${item.visual}</span>
+              </div>
+              <div class="item-content">
+                <div class="item-topline">
+                  <span class="item-category">${item.category}</span>
+                  <span class="item-price">${formatCurrency(item.price)}</span>
+                </div>
+                <h3>${item.name}</h3>
+                <div class="item-rating">
+                  <span>★ ${item.rating.toFixed(1)}</span>
+                  <small>(${item.reviews} reviews)</small>
+                </div>
+                <p class="item-description">${item.description}</p>
+                <div class="item-meta">
+                  <span>${item.location}</span>
+                  <div class="card-actions">
+                    <button class="mini-button" data-cart="${item.id}">Add to cart</button>
+                    <button class="mini-button detail-button" data-detail="${item.id}">View</button>
+                    <button class="request-button" data-request="${item.id}">Request -></button>
+                  </div>
+                </div>
+              </div>
+            </article>`,
         )
         .join("")
     : '<p class="muted">No items match that search yet.</p>';
@@ -204,6 +376,18 @@ function renderItems() {
     .querySelectorAll("[data-request]")
     .forEach((button) =>
       button.addEventListener("click", () => openRequest(button.dataset.request)),
+    );
+
+  document
+    .querySelectorAll("[data-cart]")
+    .forEach((button) =>
+      button.addEventListener("click", () => addToCart(Number(button.dataset.cart))),
+    );
+
+  document
+    .querySelectorAll("[data-detail]")
+    .forEach((button) =>
+      button.addEventListener("click", () => openProductDetail(Number(button.dataset.detail))),
     );
 }
 
@@ -288,12 +472,29 @@ document.querySelectorAll(".filter-button").forEach((button) =>
 
 $("#search-input").addEventListener("input", renderItems);
 $("#modal-close").addEventListener("click", closeModals);
+$("#product-close").addEventListener("click", () => {
+  document.querySelector("#product-modal").classList.add("hidden");
+});
+$("#checkout-close").addEventListener("click", () => {
+  document.querySelector("#checkout-modal").classList.add("hidden");
+});
 $("#list-close").addEventListener("click", closeModals);
 document.querySelectorAll(".modal-backdrop").forEach((backdrop) =>
   backdrop.addEventListener("click", (event) => {
     if (event.target === backdrop) closeModals();
   }),
 );
+
+const checkoutButton = document.querySelector(".cart-button");
+checkoutButton?.addEventListener("click", openCheckout);
+
+const checkoutSubmitButton = document.querySelector("#checkout-submit");
+checkoutSubmitButton?.addEventListener("click", () => {
+  state.cart = [];
+  renderCart();
+  document.querySelector("#checkout-modal").classList.add("hidden");
+  showToast("Order placed successfully.");
+});
 
 $("#request-form").addEventListener("submit", async (event) => {
   event.preventDefault();

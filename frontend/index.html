@@ -104,12 +104,20 @@
     <main>
       <section class="hero" id="browse-view">
         <div class="hero-copy">
-          <!-- <p class="eyebrow">Northbridge student exchange</p> -->
+          <p class="eyebrow">Smart campus marketplace</p>
           <h1>ALPHA<br /><em>Borrow it nearby.</em></h1>
           <p class="hero-lede">
-            Find useful things from other students, borrow them for a few days,
-            and pass them on when you are done.
+            Discover everyday student essentials, rent trusted gear, and keep the
+            campus economy moving with a cleaner, smarter shopping experience.
           </p>
+          <div class="hero-actions">
+            <button class="primary-button hero-button" data-view="browse">
+              Shop essentials
+            </button>
+            <button class="outline-button hero-button alt" data-view="requests">
+              Track requests
+            </button>
+          </div>
           <div class="hero-stats">
             <span><strong id="item-total">15</strong> items nearby</span
             ><span class="dot"></span
@@ -125,6 +133,63 @@
           <div class="hero-note">
             made by <br /><strong>TEAM ALPHA</strong>
           </div>
+        </div>
+      </section>
+
+      <section class="promo-strip">
+        <div class="promo-item">
+          <span>Free pickup</span>
+          <strong>On campus</strong>
+        </div>
+        <div class="promo-item">
+          <span>Trusted lending</span>
+          <strong>4.9/5 rating</strong>
+        </div>
+        <div class="promo-item">
+          <span>Fast booking</span>
+          <strong>Same day</strong>
+        </div>
+        <div class="promo-item">
+          <span>Student savings</span>
+          <strong>Up to 60%</strong>
+        </div>
+      </section>
+
+      <section class="marketplace-bar">
+        <div class="category-pills">
+          <button class="pill active">Popular</button>
+          <button class="pill">Study gear</button>
+          <button class="pill">Tech</button>
+          <button class="pill">Outdoors</button>
+          <button class="pill">Creative</button>
+        </div>
+      </section>
+
+      <section class="featured-section">
+        <div class="deal-card">
+          <div class="deal-copy">
+            <p class="eyebrow">Deal of the day</p>
+            <h3>Campus essentials bundle</h3>
+            <p>
+              Save on popular desk, study, and tech items with student-first pricing.
+            </p>
+            <div class="deal-row">
+              <strong>₹5,999</strong>
+              <span>Save 35%</span>
+            </div>
+            <button class="primary-button deal-button">Grab the deal</button>
+          </div>
+          <div class="deal-visual" aria-hidden="true">▣</div>
+        </div>
+
+        <div class="trend-card">
+          <p class="eyebrow">Trending now</p>
+          <ul>
+            <li><span>Study set</span><strong>4.9</strong></li>
+            <li><span>Micro tech</span><strong>4.8</strong></li>
+            <li><span>Weekend gear</span><strong>4.9</strong></li>
+            <li><span>Creative tools</span><strong>4.8</strong></li>
+          </ul>
         </div>
       </section>
 
@@ -161,16 +226,24 @@
         </div>
         <div class="browse-layout">
           <div class="item-grid" id="item-grid"></div>
-          <aside class="side-note">
-            <div class="note-pin">*</div>
-            <p class="eyebrow">Campus tip</p>
-            <h3>Small borrow.<br />Big difference.</h3>
-            <p>
-              Keep things circulating. Every item shared means one less thing
-              bought new.
-            </p>
-            <div class="note-rule"></div>
-            <span class="note-signoff">The CampusLoop team</span>
+          <aside class="cart-panel">
+            <div class="cart-header">
+              <div>
+                <p class="eyebrow">Cart</p>
+                <h3>Shopping summary</h3>
+              </div>
+              <span class="cart-count" id="cart-count">0</span>
+            </div>
+            <div id="cart-items" class="cart-items">
+              <p class="muted cart-empty">Your cart is empty.</p>
+            </div>
+            <div class="cart-summary">
+              <div>
+                <span>Subtotal</span>
+                <strong id="cart-total">$0.00</strong>
+              </div>
+              <button class="primary-button cart-button">Checkout</button>
+            </div>
           </aside>
         </div>
       </section>
@@ -209,6 +282,19 @@
     </main>
 
     <div class="toast" id="toast" role="status"></div>
+    <div class="modal-backdrop hidden" id="product-modal">
+      <div
+        class="modal product-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="product-title"
+      >
+        <button class="modal-close" id="product-close" aria-label="Close">
+          x
+        </button>
+        <div id="product-detail"></div>
+      </div>
+    </div>
     <div class="modal-backdrop hidden" id="request-modal">
       <div
         class="modal"
@@ -239,6 +325,28 @@
             Send request <span>-></span>
           </button>
         </form>
+      </div>
+    </div>
+    <div class="modal-backdrop hidden" id="checkout-modal">
+      <div
+        class="modal checkout-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="checkout-title"
+      >
+        <button class="modal-close" id="checkout-close" aria-label="Close">
+          x
+        </button>
+        <p class="eyebrow">Checkout</p>
+        <h2 id="checkout-title">Complete purchase</h2>
+        <div id="checkout-items" class="checkout-items"></div>
+        <div class="checkout-total-row">
+          <span>Estimated total</span>
+          <strong id="checkout-total">₹0.00</strong>
+        </div>
+        <button class="primary-button checkout-submit" id="checkout-submit">
+          Place order <span>-></span>
+        </button>
       </div>
     </div>
     <div class="modal-backdrop hidden" id="list-modal">
