@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#00171f" />
+    <title>CampusLoop | Borrow better</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .hero {
+        min-height: 340px;
+        padding-top: 58px;
+        padding-bottom: 48px;
+      }
+      .hero-copy {
+        max-width: 560px;
+      }
+      .hero-lede {
+        max-width: 470px;
+      }
+      .content-wrap {
+        padding-top: 42px;
+      }
+      .section-heading {
+        align-items: center;
+      }
+      .toolbar {
+        margin-top: 26px;
+      }
+      .browse-layout {
+        grid-template-columns: minmax(0, 1fr) 220px;
+        gap: 28px;
+      }
+      .item-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+      .item-card {
+        min-width: 0;
+      }
+      .item-meta span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      @media (max-width: 1050px) {
+        .browse-layout {
+          grid-template-columns: 1fr;
+        }
+        .side-note {
+          display: none;
+        }
+      }
+      @media (max-width: 700px) {
+        .hero {
+          min-height: 0;
+          padding-top: 42px;
+        }
+        .hero-art {
+          min-height: 200px;
+        }
+        .item-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      @media (max-width: 520px) {
+        .item-grid {
+          grid-template-columns: 1fr;
+        }
+        .item-image {
+          height: 150px;
+        }
+        .outline-button {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#browse" aria-label="CampusLoop home"
+        ><span class="brand-mark">C</span
+        ><span>campus<span class="brand-loop">loop</span></span></a
+      >
+      <nav class="main-nav" aria-label="Main navigation">
+        <button class="nav-link active" data-view="browse">Browse</button>
+        <button class="nav-link" data-view="requests">
+          My requests <span class="nav-count" id="request-count">1</span>
+        </button>
+        <button class="nav-link" data-view="listings">My listings</button>
+      </nav>
+      <div class="profile-menu">
+        <span class="avatar">SS</span
+        ><span class="profile-name">Santosh Shah</span
+        ><span class="chevron">v</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" id="browse-view">
+        <div class="hero-copy">
+          <!-- <p class="eyebrow">Northbridge student exchange</p> -->
+          <h1>ALPHA<br /><em>Borrow it nearby.</em></h1>
+          <p class="hero-lede">
+            Find useful things from other students, borrow them for a few days,
+            and pass them on when you are done.
+          </p>
+          <div class="hero-stats">
+            <span><strong id="item-total">15</strong> items nearby</span
+            ><span class="dot"></span
+            ><span><strong>4.9</strong> average trust score</span>
+          </div>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="sun"></div>
+          <div class="hill hill-back"></div>
+          <div class="hill hill-front"></div>
+          <div class="doodle doodle-one">+</div>
+          <div class="doodle doodle-two">+</div>
+          <div class="hero-note">
+            made by <br /><strong>TEAM ALPHA</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="content-wrap">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Shared by students</p>
+            <h2>Browse the shelf</h2>
+          </div>
+          <button class="outline-button" id="list-item-button">
+            <span>+</span> Share an item
+          </button>
+        </div>
+        <div class="toolbar">
+          <label class="search-box"
+            ><span class="search-icon">/</span
+            ><input
+              id="search-input"
+              type="search"
+              placeholder="Search calculators, cameras, bikes..."
+          /></label>
+          <div class="filters">
+            <button class="filter-button active" data-category="All">
+              All items</button
+            ><button class="filter-button" data-category="Study">Study</button
+            ><button class="filter-button" data-category="Tech">Tech</button
+            ><button class="filter-button" data-category="Outdoors">
+              Outdoors</button
+            ><button class="filter-button" data-category="Creative">
+              Creative
+            </button>
+          </div>
+          <button class="filter-icon" aria-label="More filters">=</button>
+        </div>
+        <div class="browse-layout">
+          <div class="item-grid" id="item-grid"></div>
+          <aside class="side-note">
+            <div class="note-pin">*</div>
+            <p class="eyebrow">Campus tip</p>
+            <h3>Small borrow.<br />Big difference.</h3>
+            <p>
+              Keep things circulating. Every item shared means one less thing
+              bought new.
+            </p>
+            <div class="note-rule"></div>
+            <span class="note-signoff">The CampusLoop team</span>
+          </aside>
+        </div>
+      </section>
+
+      <section class="dashboard-view hidden" id="requests-view">
+        <div class="dashboard-head">
+          <div>
+            <p class="eyebrow">Borrowing</p>
+            <h2>My requests</h2>
+            <p class="muted">
+              See what you have asked to borrow and what happens next.
+            </p>
+          </div>
+          <button class="outline-button" data-view="browse">
+            Find another item
+          </button>
+        </div>
+        <div class="request-list" id="request-list"></div>
+      </section>
+      <section class="dashboard-view hidden" id="listings-view">
+        <div class="dashboard-head">
+          <div>
+            <p class="eyebrow">Sharing</p>
+            <h2>My listings</h2>
+            <p class="muted">
+              Keep track of the things you have made available to other
+              students.
+            </p>
+          </div>
+          <button class="outline-button" id="list-item-button-two">
+            <span>+</span> Share an item
+          </button>
+        </div>
+        <div class="listing-list" id="listing-list"></div>
+      </section>
+    </main>
+
+    <div class="toast" id="toast" role="status"></div>
+    <div class="modal-backdrop hidden" id="request-modal">
+      <div
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+      >
+        <button class="modal-close" id="modal-close" aria-label="Close">
+          x
+        </button>
+        <p class="eyebrow">Borrow request</p>
+        <h2 id="modal-title">Request this item</h2>
+        <div class="modal-item" id="modal-item"></div>
+        <form id="request-form">
+          <label
+            >When do you need it?<span class="date-row"
+              ><input id="start-date" type="date" required /><input
+                id="end-date"
+                type="date"
+                required /></span></label
+          ><label
+            >Note to the owner<textarea
+              id="request-note"
+              rows="3"
+              placeholder="Tell them what you need it for..."
+            ></textarea></label
+          ><button class="primary-button" type="submit">
+            Send request <span>-></span>
+          </button>
+        </form>
+      </div>
+    </div>
+    <div class="modal-backdrop hidden" id="list-modal">
+      <div
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="list-title"
+      >
+        <button class="modal-close" id="list-close" aria-label="Close">
+          x
+        </button>
+        <p class="eyebrow">Share with campus</p>
+        <h2 id="list-title">List an item</h2>
+        <form id="list-form">
+          <label
+            >Item name<input
+              id="new-name"
+              required
+              placeholder="e.g. Portable projector" /></label
+          ><label
+            >Category<select id="new-category">
+              <option>Study</option>
+              <option>Tech</option>
+              <option>Outdoors</option>
+              <option>Creative</option>
+            </select></label
+          ><label
+            >Pickup location<input
+              id="new-location"
+              required
+              placeholder="e.g. Library lobby" /></label
+          ><label
+            >Short description<textarea
+              id="new-description"
+              rows="3"
+              required
+              placeholder="What should borrowers know?"
+            ></textarea></label
+          ><button class="primary-button" type="submit">
+            Publish listing <span>-></span>
+          </button>
+        </form>
+      </div>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>
